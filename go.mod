@@ -5,6 +5,7 @@ go 1.22.3
 require github.com/pressly/goose/v3 v3.22.1
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/labstack/echo/v4 v4.12.0 // indirect
@@ -15,6 +16,7 @@ require (
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect

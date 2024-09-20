@@ -55,11 +55,13 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/username/myapp/handler/user_handler.go (90.9%)</option>
+				<option value="file0">github.com/username/myapp/handler/user_handler.go (0.0%)</option>
 				
-				<option value="file1">github.com/username/myapp/repository/user_repository.go (80.0%)</option>
+				<option value="file1">github.com/username/myapp/main.go (0.0%)</option>
 				
-				<option value="file2">github.com/username/myapp/service/user_service.go (100.0%)</option>
+				<option value="file2">github.com/username/myapp/repository/user_repository.go (100.0%)</option>
+				
+				<option value="file3">github.com/username/myapp/service/user_service.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -88,25 +90,25 @@ type UserHandler struct {
 }
 
 // NewUserHandler adalah konstruktor untuk UserHandler
-func NewUserHandler(service service.UserService) *UserHandler <span class="cov8" title="1">{
+func NewUserHandler(service service.UserService) *UserHandler <span class="cov0" title="0">{
     return &amp;UserHandler{
         Service: service,
     }
 }</span>
 
 // DeleteUser menangani HTTP DELETE /users/:id
-func (h *UserHandler) DeleteUser(c echo.Context) error <span class="cov8" title="1">{
+func (h *UserHandler) DeleteUser(c echo.Context) error <span class="cov0" title="0">{
     idParam := c.Param("id")
     id, err := strconv.Atoi(idParam)
-    if err != nil </span><span class="cov8" title="1">{
+    if err != nil </span><span class="cov0" title="0">{
         return c.JSON(http.StatusBadRequest, map[string]string{
             "error": "invalid user id",
         })
     }</span>
 
-    <span class="cov8" title="1">err = h.Service.DeleteUser(id)
-    if err != nil </span><span class="cov8" title="1">{
-        if err.Error() == "user not found" </span><span class="cov8" title="1">{
+    <span class="cov0" title="0">err = h.Service.DeleteUser(id)
+    if err != nil </span><span class="cov0" title="0">{
+        if err.Error() == "user not found" </span><span class="cov0" title="0">{
             return c.JSON(http.StatusNotFound, map[string]string{
                 "error": err.Error(),
             })
@@ -116,61 +118,96 @@ func (h *UserHandler) DeleteUser(c echo.Context) error <span class="cov8" title=
         })</span>
     }
 
-    <span class="cov8" title="1">return c.NoContent(http.StatusNoContent)</span>
+    <span class="cov0" title="0">return c.NoContent(http.StatusNoContent)</span>
 }
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package repository
+		<pre class="file" id="file1" style="display: none">package main
 
 import (
-    "database/sql"
-    "fmt"
+        "database/sql"
+        "log"
+
+        "github.com/labstack/echo/v4"
+        "github.com/labstack/echo/v4/middleware"
+        _ "github.com/lib/pq"
+        "github.com/username/myapp/handler"
+        "github.com/username/myapp/repository"
+        "github.com/username/myapp/service"
+)
+
+func main() <span class="cov0" title="0">{
+        // Konfigurasi database
+        dsn := "postgres://postgres:mkpmobile2024@localhost:5432/myapp_test?sslmode=disable"
+
+        // Inisialisasi database
+        db, err := sql.Open("postgres", dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Failed to connect to database: %v", err)
+        }</span>
+        <span class="cov0" title="0">defer db.Close()
+
+        // Inisialisasi repository, service, dan handler
+        userRepo := repository.NewUserRepository(db)
+        userService := service.NewUserService(userRepo)
+        userHandler := handler.NewUserHandler(userService)
+
+        // Inisialisasi Echo
+        e := echo.New()
+
+        // Middleware
+        e.Use(middleware.Logger())
+        e.Use(middleware.Recover())
+
+        // Routing
+        e.DELETE("/users/:id", userHandler.DeleteUser)
+
+        // Jalankan server
+        if err := e.Start(":8080"); err != nil </span><span class="cov0" title="0">{
+                log.Fatalf("Shutting down the server: %v", err)
+        }</span>
+}</pre>
+		
+		<pre class="file" id="file2" style="display: none">package repository
+
+import (
+        "database/sql"
 )
 
 type User struct {
-    ID       int
-    Username string
-    Email    string
-    Password string
+        ID       int
+        Username string
+        Email    string
+        Password string
 }
 
 type UserRepository interface {
-    DeleteUser(id int) error
-    // Metode lain seperti GetUserByID, CreateUser, dsb.
+        DeleteUser(id int) error
+        // Metode lain seperti GetUserByID, CreateUser, dsb.
 }
 
-type userRepositoryImpl struct {
-    DB *sql.DB
+type UserRepositoryImpl struct {
+        DB *sql.DB
 }
 
 // NewUserRepository adalah konstruktor untuk UserRepository
-func NewUserRepository(db *sql.DB) UserRepository <span class="cov8" title="1">{
-    return &amp;userRepositoryImpl{
-        DB: db,
-    }
+func NewUserRepository(db *sql.DB) UserRepositoryImpl <span class="cov8" title="1">{
+        return UserRepositoryImpl{
+                DB: db,
+        }
 }</span>
 
 // DeleteUser menghapus pengguna berdasarkan ID
-func (r *userRepositoryImpl) DeleteUser(id int) error <span class="cov8" title="1">{
-    result, err := r.DB.Exec("DELETE FROM users WHERE id = $1", id)
-    if err != nil </span><span class="cov0" title="0">{
-        return err
-    }</span>
-
-    <span class="cov8" title="1">rowsAffected, err := result.RowsAffected()
-    if err != nil </span><span class="cov0" title="0">{
-        return err
-    }</span>
-
-    <span class="cov8" title="1">if rowsAffected == 0 </span><span class="cov8" title="1">{
-        return fmt.Errorf("user not found")
-    }</span>
-
-    <span class="cov8" title="1">return nil</span>
+func (r UserRepositoryImpl) DeleteUser(id int) error <span class="cov8" title="1">{
+        _, err := r.DB.Exec("DELETE FROM users WHERE id = $1", id)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package service
+		<pre class="file" id="file3" style="display: none">package service
 
 import "github.com/username/myapp/repository"
 
@@ -184,14 +221,14 @@ type userServiceImpl struct {
 }
 
 // NewUserService adalah konstruktor untuk UserService
-func NewUserService(repo repository.UserRepository) UserService <span class="cov8" title="1">{
+func NewUserService(repo repository.UserRepository) UserService <span class="cov0" title="0">{
     return &amp;userServiceImpl{
         repo: repo,
     }
 }</span>
 
 // DeleteUser menghapus pengguna berdasarkan ID dengan logika bisnis tambahan jika diperlukan
-func (s *userServiceImpl) DeleteUser(id int) error <span class="cov8" title="1">{
+func (s *userServiceImpl) DeleteUser(id int) error <span class="cov0" title="0">{
     return s.repo.DeleteUser(id)
 }</span>
 </pre>
